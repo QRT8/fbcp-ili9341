@@ -127,18 +127,18 @@ int main()
   size *= 2;
 #endif
 
-#ifdef DOUBLE_DISPLAY   //pre-allocate space to store 2 halves of the framebuffer
-  int halfsize = size / 2;
+#ifdef DOUBLE_DISPLAY   //pre-allocate space to store 2 halves of the framebuffer\
   uint16_t* leftframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() leftframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() leftframebuffer1") };
-  memset(leftframebuffer[0], 0, halfsize);
-  memset(leftframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
+  memset(leftframebuffer[0], 0, size);
+  memset(leftframebuffer[1], 0, gpuFramebufferSizeBytes);
 
   uint16_t* rightframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() rightframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() rightframebuffer1") };
-  memset(rightframebuffer[0], 0, halfsize);
-  memset(rightframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
+  memset(rightframebuffer[0], 0, size);
+  memset(rightframebuffer[1], 0, gpuFramebufferSizeBytes);
   /////////todo: delete unused framebuffer[1]?
 #endif
 
+  //////////need to allocate 2x space for double display
   uint16_t *framebuffer[2] = { (uint16_t *)Malloc(size, "main() framebuffer0"), (uint16_t *)Malloc(gpuFramebufferSizeBytes, "main() framebuffer1") };
   memset(framebuffer[0], 0, size); // Doublebuffer received GPU memory contents, first buffer contains current GPU memory,
   memset(framebuffer[1], 0, gpuFramebufferSizeBytes); // second buffer contains whatever the display is currently showing. This allows diffing pixels between the two.
