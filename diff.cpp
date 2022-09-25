@@ -15,8 +15,8 @@ void NoDiffChangedRectangle(Span *&head)
   head->x = 0;
   head->endX = head->lastScanEndX = gpuFrameWidth;
   head->y = 0;
-  head->endY = gpuFrameHeight;
-  head->size = gpuFrameWidth*gpuFrameHeight;
+  head->endY = actualDisplayHeight;
+  head->size = gpuFrameWidth*actualDisplayHeight;
   head->next = 0;
 }
 #endif
@@ -129,10 +129,10 @@ void DiffFramebuffersToSingleChangedRectangle(uint16_t *framebuffer, uint16_t *p
   uint16_t *scanline = framebuffer;
   uint16_t *prevScanline = prevFramebuffer;
 
-  static const bool framebufferSizeCompatibleWithCoarseDiff = gpuFramebufferScanlineStrideBytes == gpuFrameWidth*2 && gpuFramebufferScanlineStrideBytes*gpuFrameHeight % 32 == 0;
+  static const bool framebufferSizeCompatibleWithCoarseDiff = gpuFramebufferScanlineStrideBytes == gpuFrameWidth*2 && gpuFramebufferScanlineStrideBytes* actualDisplayHeight % 32 == 0;
   if (framebufferSizeCompatibleWithCoarseDiff)
   {
-    int numPixels = gpuFrameWidth*gpuFrameHeight;
+    int numPixels = gpuFrameWidth* actualDisplayHeight;
     int firstDiff = coarse_linear_diff(framebuffer, prevFramebuffer, framebuffer + numPixels);
     if (firstDiff == numPixels)
       return; // No pixels changed, nothing to do.
@@ -144,7 +144,7 @@ void DiffFramebuffersToSingleChangedRectangle(uint16_t *framebuffer, uint16_t *p
   }
   else
   {
-    while(minY < gpuFrameHeight)
+    while(minY < actualDisplayHeight)
     {
       int x = 0;
       // diff 4 pixels at a time
@@ -176,11 +176,11 @@ void DiffFramebuffersToSingleChangedRectangle(uint16_t *framebuffer, uint16_t *p
 found_top:
 
   int maxX = -1;
-  int maxY = gpuFrameHeight-1;
+  int maxY = actualDisplayHeight-1;
 
   if (framebufferSizeCompatibleWithCoarseDiff)
   {
-    int numPixels = gpuFrameWidth*gpuFrameHeight;
+    int numPixels = gpuFrameWidth* actualDisplayHeight;
     int firstDiff = coarse_backwards_linear_diff(framebuffer, prevFramebuffer, framebuffer + numPixels);
     // Coarse diff computes a diff at 8 adjacent pixels at a time, and returns the point to the 8-pixel aligned coordinate where the pixels began to differ.
     // Compute the precise diff position here.
@@ -190,8 +190,8 @@ found_top:
   }
   else
   {
-    scanline = framebuffer + (gpuFrameHeight - 1)*stride;
-    prevScanline = prevFramebuffer + (gpuFrameHeight - 1)*stride; // (same scanline from previous frame, not preceding scanline)
+    scanline = framebuffer + (actualDisplayHeight - 1)*stride;
+    prevScanline = prevFramebuffer + (actualDisplayHeight - 1)*stride; // (same scanline from previous frame, not preceding scanline)
 
     while(maxY >= minY)
     {
@@ -293,7 +293,7 @@ void DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(uint16_t *framebuffer, ui
   const int W = gpuFrameWidth>>2;
 
   Span *span = spans;
-  while(y < gpuFrameHeight)
+  while(y < actualDisplayHeight)
   {
     uint16_t *scanlineStart = (uint16_t *)scanline;
 
@@ -369,7 +369,7 @@ void DiffFramebuffersToScanlineSpansExact(uint16_t *framebuffer, uint16_t *prevF
   uint16_t *scanline = framebuffer + y*(gpuFramebufferScanlineStrideBytes>>1);
   uint16_t *prevScanline = prevFramebuffer + y*(gpuFramebufferScanlineStrideBytes>>1); // (same scanline from previous frame, not preceding scanline)
 
-  while(y < gpuFrameHeight)
+  while(y < actualDisplayHeight)
   {
     uint16_t *scanlineStart = scanline;
     uint16_t *scanlineEnd = scanline + gpuFrameWidth;

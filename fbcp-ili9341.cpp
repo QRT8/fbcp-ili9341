@@ -31,6 +31,7 @@
 #include "low_battery.h"
 
 //define some functions (CountNumChangedPixels, SignalToString, stuff about the quitting the program)
+//
 int CountNumChangedPixels(uint16_t *framebuffer, uint16_t *prevFramebuffer)
 {
   int changedPixels = 0;
@@ -117,6 +118,7 @@ int main()
 
   spans = (Span*)Malloc((gpuFrameWidth * gpuFrameHeight / 2) * sizeof(Span), "main() task spans");
   int size = gpuFramebufferSizeBytes;
+  int halfsize = gpuFramebufferSizeBytes / 2;
 
 #ifdef USE_GPU_VSYNC
   // BUG in vc_dispmanx_resource_read_data(!!): If one is capturing a small subrectangle of a large screen resource rectangle, the destination pointer 
@@ -127,18 +129,20 @@ int main()
   size *= 2;
 #endif
 
-#ifdef DOUBLE_DISPLAY   //pre-allocate space to store 2 halves of the framebuffer\
-  uint16_t* leftframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() leftframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() leftframebuffer1") };
-  memset(leftframebuffer[0], 0, size);
-  memset(leftframebuffer[1], 0, gpuFramebufferSizeBytes);
+#ifdef DOUBLE_HEIGHT   //pre-allocate space to store 2 halves of the framebuffer
+  uint16_t* firsthalfframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() firsthalfframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() firsthalfframebuffer1") };
+  memset(firsthalfframebuffer[0], 0, halfsize);
+  memset(firsthalfframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
 
-  uint16_t* rightframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() rightframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() rightframebuffer1") };
-  memset(rightframebuffer[0], 0, size);
-  memset(rightframebuffer[1], 0, gpuFramebufferSizeBytes);
-  /////////todo: delete unused framebuffer[1]?
+  uint16_t* secondhalfframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() secondhalfframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() secondhalfframebuffer1") };
+  memset(secondhalfframebuffer[0], 0, halfsize);
+  memset(secondhalfframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
+
+  actualDisplayHeight = gpuFrameHeight / 2;
+#else
+  actualDisplayHeight = gpuFrameHeight;
 #endif
 
-  //////////need to allocate 2x space for double display
   uint16_t *framebuffer[2] = { (uint16_t *)Malloc(size, "main() framebuffer0"), (uint16_t *)Malloc(gpuFramebufferSizeBytes, "main() framebuffer1") };
   memset(framebuffer[0], 0, size); // Doublebuffer received GPU memory contents, first buffer contains current GPU memory,
   memset(framebuffer[1], 0, gpuFramebufferSizeBytes); // second buffer contains whatever the display is currently showing. This allows diffing pixels between the two.
@@ -161,9 +165,6 @@ int main()
   printf("All initialized, now running main loop...\n");
   while(programRunning)
   {
-    ////////TESTING
-    for (DISPLAY_LOOP = 0; DISPLAY_LOOP < NUM_DISPLAY_LOOPS; DISPLAY_LOOP++, CS_BIT = !CS_BIT)
-    {
     prevFrameWasInterlacedUpdate = interlacedUpdate;
 
     // If last update was interlaced, it means we still have half of the image pending to be updated. In such a case,
@@ -293,6 +294,11 @@ int main()
       memcpy(framebuffer[0], videoCoreFramebuffer[1], gpuFramebufferSizeBytes);
 #endif
 
+#ifdef DOUBLE_HEIGHT //for doubleheight, take subsets of framebuffer for halfframebuffers
+      memcpy(firsthalfframebuffer[0], framebuffer[0], gpuFramebufferSizeBytes/2); //copy 1st half of frambuffer
+      memcpy(secondhalfframebuffer[0], framebuffer[0]+(gpuFramebufferSizeBytes/2), gpuFramebufferSizeBytes/2); //copy 2nd half of frambuffer (not sure if this is right)
+#endif
+
       PollLowBattery();
 
 #ifdef STATISTICS
@@ -375,12 +381,27 @@ int main()
 
     if (interlacedUpdate) frameParity = 1-frameParity; // Swap even-odd fields every second time we do an interlaced update (progressive updates ignore field order)
     int bytesTransferred = 0;
+
+    ////////TESTING
+    for (DISPLAY_LOOP = 0; DISPLAY_LOOP < NUM_DISPLAY_LOOPS; DISPLAY_LOOP++, CS_BIT = !CS_BIT)
+    {
+
+
     Span *head = 0;
 
 #if defined(ALL_TASKS_SHOULD_DMA) && defined(UPDATE_FRAMES_WITHOUT_DIFFING)
     NoDiffChangedRectangle(head);
 #elif defined(ALL_TASKS_SHOULD_DMA) && defined(UPDATE_FRAMES_IN_SINGLE_RECTANGULAR_DIFF)
+
+#ifdef DOUBLE_HEIGHT
+    if (!CS_BIT)
+        DiffFramebuffersToSingleChangedRectangle(firsthalfframebuffer[0], firsthalfframebuffer[1], head);
+    else
+        DiffFramebuffersToSingleChangedRectangle(secondhalfframebuffer[0], secondhalfframebuffer[1], head);
+#else
     DiffFramebuffersToSingleChangedRectangle(framebuffer[0], framebuffer[1], head);
+#endif
+
 #else
     // Collect all spans in this image
     if (framebufferHasNewChangedPixels || prevFrameWasInterlacedUpdate)
@@ -388,10 +409,25 @@ int main()
       // If possible, utilize a faster 4-wide pixel diffing method
 #ifdef FAST_BUT_COARSE_PIXEL_DIFF
       if (gpuFrameWidth % 4 == 0 && gpuFramebufferScanlineStrideBytes % 8 == 0)
+#ifdef DOUBLE_HEIGHT
+          if (!CS_BIT)
+              DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(firsthalfframebuffer[0], firsthalfframebuffer[1], interlacedUpdate, frameParity, head);
+          else
+              DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(secondhalfframebuffer[0], secondhalfframebuffer[1], interlacedUpdate, frameParity, head);
+#else
         DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(framebuffer[0], framebuffer[1], interlacedUpdate, frameParity, head);
+#endif
       else
 #endif
+
+#ifdef DOUBLE_HEIGHT
+          if (!CS_BIT)
+              DiffFramebuffersToScanlineSpansExact(firsthalfframebuffer[0], firsthalfframebuffer[1], interlacedUpdate, frameParity, head);
+          else
+              DiffFramebuffersToScanlineSpansExact(secondhalfframebuffer[0], secondhalfframebuffer[1], interlacedUpdate, frameParity, head);
+#else
         DiffFramebuffersToScanlineSpansExact(framebuffer[0], framebuffer[1], interlacedUpdate, frameParity, head); // If disabled, or framebuffer width is not compatible, use the exact method
+#endif
     }
 
     // Merge spans together on adjacent scanlines - works only if doing a progressive update
@@ -433,7 +469,7 @@ int main()
 #endif
       {
 #if defined(MUST_SEND_FULL_CURSOR_WINDOW) || defined(ALIGN_TASKS_FOR_DMA_TRANSFERS)
-        QUEUE_SET_WRITE_WINDOW_TASK(CS_BIT, DISPLAY_SET_CURSOR_Y, displayYOffset + i->y, displayYOffset + gpuFrameHeight - 1);
+        QUEUE_SET_WRITE_WINDOW_TASK(CS_BIT, DISPLAY_SET_CURSOR_Y, displayYOffset + i->y, displayYOffset + actualDisplayHeight - 1);
 #else
         QUEUE_MOVE_CURSOR_TASK(CS_BIT, DISPLAY_SET_CURSOR_Y, displayYOffset + i->y);
 #endif

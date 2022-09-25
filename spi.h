@@ -86,7 +86,8 @@ extern volatile SPIRegisterFile *spi;
 // so for best performance, should be at least ~DISPLAY_WIDTH*DISPLAY_HEIGHT*BYTES_PER_PIXEL*2 bytes in size, plus some small
 // amount for structuring each SPITask command. Technically this can be something very small, like 4096b, and not need to contain
 // even a single full frame of data, but such small buffers can cause performance issues from threads starving.
-#define SHARED_MEMORY_SIZE (DISPLAY_DRAWABLE_WIDTH*DISPLAY_DRAWABLE_HEIGHT*SPI_BYTESPERPIXEL*3)
+////////////////// doubled buffer size to compensate for 2 displays (3->6)
+#define SHARED_MEMORY_SIZE (DISPLAY_DRAWABLE_WIDTH*DISPLAY_DRAWABLE_HEIGHT*SPI_BYTESPERPIXEL*6)
 #define SPI_QUEUE_SIZE (SHARED_MEMORY_SIZE - sizeof(SharedMemory))
 
 #if defined(SPI_3WIRE_DATA_COMMAND_FRAMING_BITS) && SPI_3WIRE_DATA_COMMAND_FRAMING_BITS == 1
