@@ -118,7 +118,13 @@ int main()
 
   spans = (Span*)Malloc((gpuFrameWidth * gpuFrameHeight / 2) * sizeof(Span), "main() task spans");
   int size = gpuFramebufferSizeBytes;
-  int halfsize = gpuFramebufferSizeBytes / 2;
+  int gpuFramebufferSizeBytesHalf = gpuFramebufferSizeBytes / 2;
+  int framebufferStartShift = 0; //used to change where in the framebuffer to start for half frames (either in for the first half or second half, for two displays)
+#ifdef DOUBLE_HEIGHT   
+  actualDisplayHeight = gpuFrameHeight / 2;
+#else
+  actualDisplayHeight = gpuFrameHeight;
+#endif
 
 #ifdef USE_GPU_VSYNC
   // BUG in vc_dispmanx_resource_read_data(!!): If one is capturing a small subrectangle of a large screen resource rectangle, the destination pointer 
@@ -129,23 +135,13 @@ int main()
   size *= 2;
 #endif
 
-#ifdef DOUBLE_HEIGHT   //pre-allocate space to store 2 halves of the framebuffer
-  uint16_t* firsthalfframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() firsthalfframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() firsthalfframebuffer1") };
-  memset(firsthalfframebuffer[0], 0, halfsize);
-  memset(firsthalfframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
-
-  uint16_t* secondhalfframebuffer[2] = { (uint16_t*)Malloc(halfsize, "main() secondhalfframebuffer0"), (uint16_t*)Malloc(gpuFramebufferSizeBytes / 2, "main() secondhalfframebuffer1") };
-  memset(secondhalfframebuffer[0], 0, halfsize);
-  memset(secondhalfframebuffer[1], 0, gpuFramebufferSizeBytes / 2);
-
-  actualDisplayHeight = gpuFrameHeight / 2;
-#else
-  actualDisplayHeight = gpuFrameHeight;
-#endif
-
   uint16_t *framebuffer[2] = { (uint16_t *)Malloc(size, "main() framebuffer0"), (uint16_t *)Malloc(gpuFramebufferSizeBytes, "main() framebuffer1") };
   memset(framebuffer[0], 0, size); // Doublebuffer received GPU memory contents, first buffer contains current GPU memory,
   memset(framebuffer[1], 0, gpuFramebufferSizeBytes); // second buffer contains whatever the display is currently showing. This allows diffing pixels between the two.
+
+  //print to test that these are just addresses?
+  printf("framebuffer0 (%d) framebuffer1 (%d)\n", framebuffer[0], framebuffer[1]);
+
 #ifdef USE_GPU_VSYNC
   // Due to the above bug. In USE_GPU_VSYNC mode, we directly snapshot to framebuffer[0], so it has to be prepared specially to work around the
   // dispmanx bug.
@@ -294,11 +290,6 @@ int main()
       memcpy(framebuffer[0], videoCoreFramebuffer[1], gpuFramebufferSizeBytes);
 #endif
 
-#ifdef DOUBLE_HEIGHT //for doubleheight, take subsets of framebuffer for halfframebuffers
-      memcpy(firsthalfframebuffer[0], framebuffer[0], gpuFramebufferSizeBytes/2); //copy 1st half of frambuffer
-      memcpy(secondhalfframebuffer[0], framebuffer[0]+(gpuFramebufferSizeBytes/2), gpuFramebufferSizeBytes/2); //copy 2nd half of frambuffer (not sure if this is right)
-#endif
-
       PollLowBattery();
 
 #ifdef STATISTICS
@@ -395,12 +386,12 @@ int main()
 
 #ifdef DOUBLE_HEIGHT
     if (!CS_BIT)
-        DiffFramebuffersToSingleChangedRectangle(firsthalfframebuffer[0], firsthalfframebuffer[1], head);
+        framebufferStartShift = 0;
     else
-        DiffFramebuffersToSingleChangedRectangle(secondhalfframebuffer[0], secondhalfframebuffer[1], head);
-#else
-    DiffFramebuffersToSingleChangedRectangle(framebuffer[0], framebuffer[1], head);
+        framebufferStartShift = gpuFramebufferSizeBytesHalf;
 #endif
+
+    DiffFramebuffersToSingleChangedRectangle(framebuffer[0] + framebufferStartShift, framebuffer[1] + framebufferStartShift, head);
 
 #else
     // Collect all spans in this image
@@ -409,25 +400,14 @@ int main()
       // If possible, utilize a faster 4-wide pixel diffing method
 #ifdef FAST_BUT_COARSE_PIXEL_DIFF
       if (gpuFrameWidth % 4 == 0 && gpuFramebufferScanlineStrideBytes % 8 == 0)
-#ifdef DOUBLE_HEIGHT
-          if (!CS_BIT)
-              DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(firsthalfframebuffer[0], firsthalfframebuffer[1], interlacedUpdate, frameParity, head);
-          else
-              DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(secondhalfframebuffer[0], secondhalfframebuffer[1], interlacedUpdate, frameParity, head);
-#else
-        DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(framebuffer[0], framebuffer[1], interlacedUpdate, frameParity, head);
-#endif
+
+        DiffFramebuffersToScanlineSpansFastAndCoarse4Wide(framebuffer[0] + framebufferStartShift, framebuffer[1] + framebufferStartShift, interlacedUpdate, frameParity, head);
+
       else
 #endif
 
-#ifdef DOUBLE_HEIGHT
-          if (!CS_BIT)
-              DiffFramebuffersToScanlineSpansExact(firsthalfframebuffer[0], firsthalfframebuffer[1], interlacedUpdate, frameParity, head);
-          else
-              DiffFramebuffersToScanlineSpansExact(secondhalfframebuffer[0], secondhalfframebuffer[1], interlacedUpdate, frameParity, head);
-#else
-        DiffFramebuffersToScanlineSpansExact(framebuffer[0], framebuffer[1], interlacedUpdate, frameParity, head); // If disabled, or framebuffer width is not compatible, use the exact method
-#endif
+        DiffFramebuffersToScanlineSpansExact(framebuffer[0] + framebufferStartShift, framebuffer[1] + framebufferStartShift, interlacedUpdate, frameParity, head); // If disabled, or framebuffer width is not compatible, use the exact method
+
     }
 
     // Merge spans together on adjacent scanlines - works only if doing a progressive update
