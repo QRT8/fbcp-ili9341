@@ -116,12 +116,12 @@ int main()
 
   InitGPU();
 
-  spans = (Span*)Malloc((gpuFrameWidth * gpuFrameHeight / 2) * sizeof(Span), "main() task spans");
+  spans = (Span*)Malloc((gpuFrameWidth * gpuFrameHeight / 2) * sizeof(Span), "main() task spans"); //unchanged from juj
   int size = gpuFramebufferSizeBytes;
-  int gpuFramebufferSizeBytesHalf = gpuFramebufferSizeBytes / 2;
+  int gpuFramebufferSizeBytesHalf = gpuFramebufferSizeBytes>>1;
   int framebufferStartShift = 0; //used to change where in the framebuffer to start for half frames (either in for the first half or second half, for two displays)
 #ifdef DOUBLE_HEIGHT   
-  actualDisplayHeight = gpuFrameHeight / 2;
+  actualDisplayHeight = gpuFrameHeight>>1;
 #else
   actualDisplayHeight = gpuFrameHeight;
 #endif
@@ -139,8 +139,10 @@ int main()
   memset(framebuffer[0], 0, size); // Doublebuffer received GPU memory contents, first buffer contains current GPU memory,
   memset(framebuffer[1], 0, gpuFramebufferSizeBytes); // second buffer contains whatever the display is currently showing. This allows diffing pixels between the two.
 
-  //print to test that these are just addresses?
-  printf("framebuffer0 (%d) framebuffer1 (%d)\n", framebuffer[0], framebuffer[1]);
+  //print because I am an amateur
+  printf("framebuffer0 (%d) framebuffer1 (%d) \n", framebuffer[0], framebuffer[1]);
+  printf("framebuffer0+gpuFramebufferSizeBytesHalf (%d) framebuffer0+(gpuFramebufferSizeBytesHalf>>1) (%d) \n", framebuffer[0]+gpuFramebufferSizeBytesHalf, framebuffer[0]+(gpuFramebufferSizeBytesHalf>>1));
+  printf("size (%d) size/2 (%d) size>>1 (%d) size>>0 (%d)\n", size, size/2, size>>1, size>>0);
 
 #ifdef USE_GPU_VSYNC
   // Due to the above bug. In USE_GPU_VSYNC mode, we directly snapshot to framebuffer[0], so it has to be prepared specially to work around the
@@ -389,6 +391,7 @@ int main()
         framebufferStartShift = 0;
     else
         framebufferStartShift = gpuFramebufferSizeBytesHalf;
+        //framebufferStartShift = (gpuFramebufferSizeBytesHalf>>1);
 #endif
 
     DiffFramebuffersToSingleChangedRectangle(framebuffer[0] + framebufferStartShift, framebuffer[1] + framebufferStartShift, head);
