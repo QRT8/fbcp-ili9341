@@ -3,9 +3,9 @@
 #define GPIO_TFT_DATA_CONTROL 6
 #define GPIO_TFT_RESET_PIN 22
 #define NUM_DISPLAY_LOOPS 2
-#define gc9307
-#define TARGET_FRAME_RATE 60
-#define SPI_BUS_CLOCK_DIVISOR 10
+#define GC9307
+#define TARGET_FRAME_RATE 30
+#define SPI_BUS_CLOCK_DIVISOR 20
 #define DOUBLE_DISPLAY
 #define NUM_DISPLAY_LOOPS 2
 #define DISPLAY_CROPPED_INSTEAD_OF_SCALING
@@ -137,7 +137,7 @@
 // This saves a lot of CPU, but if you don't care and your SPI display does not have much bandwidth, try uncommenting this for more performant
 // screen updates
 #ifndef UPDATE_FRAMES_IN_SINGLE_RECTANGULAR_DIFF
-#define UPDATE_FRAMES_IN_SINGLE_RECTANGULAR_DIFF
+//#define UPDATE_FRAMES_IN_SINGLE_RECTANGULAR_DIFF
 #endif
 #endif
 

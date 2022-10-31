@@ -298,8 +298,8 @@ int main()
 #endif
       __atomic_fetch_sub(&numNewGpuFrames, numNewFrames, __ATOMIC_SEQ_CST);
 
-      DrawStatisticsOverlay(framebuffer[0]);
-      DrawLowBatteryIcon(framebuffer[0]);
+      //DrawStatisticsOverlay(framebuffer[0]);
+      //DrawLowBatteryIcon(framebuffer[0]);
 
 #ifdef USE_GPU_VSYNC
 
@@ -387,8 +387,8 @@ int main()
     if (!CS_BIT)
         framebufferStartShift = 0;
     else
-        framebufferStartShift = gpuFramebufferSizeBytesHalf;
-        //framebufferStartShift = (gpuFramebufferSizeBytesHalf>>1);
+        //framebufferStartShift = gpuFramebufferSizeBytesHalf;
+        framebufferStartShift = (gpuFramebufferSizeBytesHalf>>1);
 #endif
 
     DiffFramebuffersToSingleChangedRectangle(framebuffer[0] + framebufferStartShift, framebuffer[1] + framebufferStartShift, head);

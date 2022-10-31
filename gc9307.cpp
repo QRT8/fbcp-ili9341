@@ -79,6 +79,8 @@ void InitGC9307()
 #endif
 
           ClearScreen(SPI_CS_BIT);
+
+          printf("Initialized GC9307 on CS %d\n", SPI_CS_BIT);
       }
 #ifndef USE_DMA_TRANSFERS // For DMA transfers, keep SPI CS & TA active.
       END_SPI_COMMUNICATION(SPI_CS_BIT);
@@ -138,6 +140,7 @@ void DeinitSPIDisplay()
   SPI_CS_BIT = 1;
 #endif
   for (uint8_t DISPLAY_LOOP = 0; DISPLAY_LOOP < NUM_DISPLAY_LOOPS; DISPLAY_LOOP++, SPI_CS_BIT = !SPI_CS_BIT)
+  {
     ClearScreen(SPI_CS_BIT);
   } //end DISPLAY_LOOP
 }

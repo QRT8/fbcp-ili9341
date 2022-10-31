@@ -383,10 +383,10 @@ static int display_initialization_thread(void *unused)
 
 #if 1
   // XXX Debug: Random garbage to verify screen updates working
-  for(int y = 0; y < DISPLAY_HEIGHT; ++y)
+  for(int y = 0; y < DISPLAY_ACTUAL_HEIGHT; ++y)
   {
     QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_X, 0, 0, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xFF);
-    QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, y >> 8, y & 0xFF, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xFF);
+    QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, y >> 8, y & 0xFF, DISPLAY_ACTUAL_HEIGHT >> 8, DISPLAY_ACTUAL_HEIGHT & 0xFF);
     SPITask *clearLine = AllocTask(CS_BIT, DISPLAY_SCANLINE_SIZE);
     clearLine->cmd = DISPLAY_WRITE_PIXELS;
     clearLine->size = DISPLAY_SCANLINE_SIZE;
@@ -399,10 +399,10 @@ static int display_initialization_thread(void *unused)
 #endif
 
   // Initial screen clear
-  for(int y = 0; y < DISPLAY_HEIGHT; ++y)
+  for(int y = 0; y < DISPLAY_ACTUAL_HEIGHT; ++y)
   {
     QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_X, 0, 0, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xFF);
-    QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, y >> 8, y & 0xFF, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xFF);
+    QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, y >> 8, y & 0xFF, DISPLAY_ACTUAL_HEIGHT >> 8, DISPLAY_ACTUAL_HEIGHT & 0xFF);
     SPITask *clearLine = AllocTask(CS_BIT, DISPLAY_SCANLINE_SIZE);
     clearLine->cmd = DISPLAY_WRITE_PIXELS;
     clearLine->size = DISPLAY_SCANLINE_SIZE;
@@ -412,7 +412,7 @@ static int display_initialization_thread(void *unused)
   PumpSPI();
 
   QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_X, 0, 0, DISPLAY_WIDTH >> 8, DISPLAY_WIDTH & 0xFF);
-  QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, 0, 0, DISPLAY_HEIGHT >> 8, DISPLAY_HEIGHT & 0xFF);
+  QUEUE_SPI_TRANSFER(CS_BIT, DISPLAY_SET_CURSOR_Y, 0, 0, DISPLAY_ACTUAL_HEIGHT >> 8, DISPLAY_ACTUAL_HEIGHT & 0xFF);
 
   spi->cs = BCM2835_SPI0_CS_CLEAR | BCM2835_SPI0_CS_TA | BCM2835_SPI0_CS_INTR | BCM2835_SPI0_CS_INTD | CS_BIT;
 #endif

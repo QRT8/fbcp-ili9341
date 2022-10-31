@@ -56,8 +56,6 @@
 
 extern volatile void *bcm2835;
 
-int CS_TARGET = 0; //32-bit value for toggling between CE0 (CS_TARGET=0) and CE1 (CS_TARGET=1).
-
 typedef struct GPIORegisterFile
 {
   uint32_t gpfsel[6], reserved0; // GPIO Function Select registers, 3 bits per pin, 10 pins in an uint32_t
