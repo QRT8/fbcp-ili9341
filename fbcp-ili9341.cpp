@@ -122,7 +122,6 @@ int main()
   //new for 2 displays
   int gpuFramebufferSizeBytesHalf = gpuFramebufferSizeBytes>>1;
   int framebufferStartShift = 0; //used to change where in the framebuffer to start for half frames (either in for the first half or second half, for two displays)
-  int actualDisplayHeight = ACTUAL_DISPLAY_HEIGHT;
 
 #ifdef USE_GPU_VSYNC
   // BUG in vc_dispmanx_resource_read_data(!!): If one is capturing a small subrectangle of a large screen resource rectangle, the destination pointer 
@@ -374,7 +373,7 @@ int main()
     int bytesTransferred = 0;
 
     ////////TESTING
-    for (DISPLAY_LOOP = 0; DISPLAY_LOOP < NUM_DISPLAY_LOOPS; DISPLAY_LOOP++, CS_BIT = !CS_BIT)
+    for (uint8_t DISPLAY_LOOP = 0; DISPLAY_LOOP < NUM_DISPLAY_LOOPS; DISPLAY_LOOP++, CS_BIT = !CS_BIT)
     {
 
 

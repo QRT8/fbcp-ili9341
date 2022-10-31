@@ -42,6 +42,8 @@ int gpuFrameHeight = 0;
 int gpuFramebufferScanlineStrideBytes = 0;
 int gpuFramebufferSizeBytes = 0;
 
+int actualDisplayHeight = 0;
+
 int excessPixelsLeft = 0;
 int excessPixelsRight = 0;
 int excessPixelsTop = 0;
@@ -437,6 +439,8 @@ void InitGPU()
   excessPixelsRight = ROUND_TO_NEAREST_INT(display_info.width * overscanRight * scalingFactorWidth);
   excessPixelsTop = ROUND_TO_NEAREST_INT(display_info.height * overscanTop * scalingFactorHeight);
   excessPixelsBottom = ROUND_TO_NEAREST_INT(display_info.height * overscanBottom * scalingFactorHeight);
+
+  actualDisplayHeight = DISPLAY_ACTUAL_HEIGHT;
 
   gpuFrameWidth = scaledWidth;
   gpuFrameHeight = scaledHeight;

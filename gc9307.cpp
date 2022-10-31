@@ -133,7 +133,7 @@ void TurnDisplayOn()
 
 void DeinitSPIDisplay()
 {
-  bool SPI_CS_BIT = 0
+  bool SPI_CS_BIT = 0;
 #if defined(DISPLAY_USES_CE1) && NUM_DISPLAY_LOOPS < 2
   SPI_CS_BIT = 1;
 #endif

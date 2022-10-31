@@ -19,6 +19,9 @@ extern int gpuFrameHeight;
 extern int gpuFramebufferScanlineStrideBytes;
 extern int gpuFramebufferSizeBytes;
 
+//new for 2 displays
+extern int actualDisplayHeight;
+
 extern int excessPixelsLeft;
 extern int excessPixelsRight;
 extern int excessPixelsTop;
