@@ -9,9 +9,10 @@
 
 // set width and height (might experience some incorrect offset)
 #define DISPLAY_NATIVE_WIDTH 240
-#define DISPLAY_NATIVE_HEIGHT 210
-//#define DISPLAY_NATIVE_HEIGHT 420
-//#define DOUBLE_HEIGHT
+//#define DISPLAY_NATIVE_HEIGHT 210
+#define DISPLAY_NATIVE_HEIGHT 420
+#define DISPLAY_ACTUAL_HEIGHT 210
+#define DOUBLE_HEIGHT
 
 // I believe this reduces the effective screen size
 #define DISPLAY_NATIVE_COVERED_LEFT_SIDE 0

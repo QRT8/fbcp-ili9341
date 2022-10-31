@@ -118,13 +118,11 @@ int main()
 
   spans = (Span*)Malloc((gpuFrameWidth * gpuFrameHeight / 2) * sizeof(Span), "main() task spans"); //unchanged from juj
   int size = gpuFramebufferSizeBytes;
+
+  //new for 2 displays
   int gpuFramebufferSizeBytesHalf = gpuFramebufferSizeBytes>>1;
   int framebufferStartShift = 0; //used to change where in the framebuffer to start for half frames (either in for the first half or second half, for two displays)
-#ifdef DOUBLE_HEIGHT   
-  actualDisplayHeight = gpuFrameHeight>>1;
-#else
-  actualDisplayHeight = gpuFrameHeight;
-#endif
+  int actualDisplayHeight = ACTUAL_DISPLAY_HEIGHT;
 
 #ifdef USE_GPU_VSYNC
   // BUG in vc_dispmanx_resource_read_data(!!): If one is capturing a small subrectangle of a large screen resource rectangle, the destination pointer 

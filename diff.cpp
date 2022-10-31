@@ -132,7 +132,7 @@ void DiffFramebuffersToSingleChangedRectangle(uint16_t *framebuffer, uint16_t *p
   static const bool framebufferSizeCompatibleWithCoarseDiff = gpuFramebufferScanlineStrideBytes == gpuFrameWidth*2 && gpuFramebufferScanlineStrideBytes* actualDisplayHeight % 32 == 0;
   if (framebufferSizeCompatibleWithCoarseDiff)
   {
-    int numPixels = gpuFrameWidth* actualDisplayHeight;
+    int numPixels = gpuFrameWidth*actualDisplayHeight;
     int firstDiff = coarse_linear_diff(framebuffer, prevFramebuffer, framebuffer + numPixels);
     if (firstDiff == numPixels)
       return; // No pixels changed, nothing to do.

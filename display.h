@@ -100,7 +100,7 @@
 #define OFFLOAD_PIXEL_COPY_TO_DMA_CPP
 #endif
 
-void ClearScreen(void);
+void ClearScreen(bool CS_BIT);
 
 void TurnBacklightOn(void);
 void TurnBacklightOff(void);
