@@ -1,6 +1,6 @@
 ### Notes on this fork
 
-This fork (currently early in development) is intended to accomplish 2 new things:
+This fork is aimed at accomplishing 2 things:
 
 1) Add support for the GC9307-based circular display, as shown here: https://www.alibaba.com/product-detail/Small-IPS-Round-LCD-Module-1_62550674738.html
 
@@ -11,14 +11,17 @@ This fork (currently early in development) is intended to accomplish 2 new thing
 1) GC9307 display support tested and (basically) working! 
    - Custom GC9307 display files added (GC9307.h and GC9307.cpp)
    - GC9307 files are included if build option -GC9307 is used (CMakeLists.txt,  display.cpp). 
-   - There might be some small issue with spans being misaligned or missed entirely - some pixels don't seem to update on occasion
+   - There might be some small issue with spans being misaligned or missed entirely - some pixels don't seem to update or update incorrectly on occasion. This only happens with diffing; 'WITHOU_DIFFING" option works perfectly fine.
 
-2) Functionality for 2 displays still early in development:
+2) 2 unique displays are working! But not with diffing yet...
    - added CS_BIT into (hopefully) all relevent fields where SPI register is controlled (spi.h, spi.cpp, dma.cpp, bcm2835_spi_display)
    - added csBit as member of SPITask, to hopefully be able to set the cs on a task-by-task basis
    - added CS_BIT as an input to functions that need it (BEGIN/END_SPI_COMMUNICATION, QUEUE_SPI_TRANSFER/SPI_TRANSFER, QUEUE_MOVE_CURSOR_TASK, QUEUE_SET_WRITE_WINDOW_TASK, AllocTask)
    - where the display is inititialized or modified (display_initialization_thread, clearscreen, functions in gc9307.cpp), if NUM_DISPLAY_LOOPS = 2, the code is looped through twice - once for each chip select.
    - in functions that get tasks (pumpSPI, executeSPITasks), begin spi communication with CS0, but end/start with a different cs bit every time a new task->csBit changes
+   - When not diffing, both displays work perfectly. With diffing, it can either be a mess, or be almost OK (but never any better than those small issues mention above even when only using 1 display.
+   
+   
 
 ### Now back to the original README...
 
