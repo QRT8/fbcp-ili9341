@@ -280,8 +280,6 @@ elseif(MPI3501)
 		message(FATAL_ERROR "DMA is unfortunately not possible with MPI3501. Please disable with -DUSE_DMA_TRANSFERS=OFF.")
 	endif()
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGC9307")
-	message(STATUS "Targeting GC9307 by default")
 #	message(FATAL_ERROR "Please specify which display controller to use on command line to CMake!")
 endif()
 

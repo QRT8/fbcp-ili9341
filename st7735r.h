@@ -17,7 +17,10 @@
 
 #if defined(ST7789) || defined(ST7789VW)
 #define DISPLAY_NATIVE_WIDTH 240
-#define DISPLAY_NATIVE_HEIGHT 240
+//#define DISPLAY_NATIVE_HEIGHT 210
+#define DISPLAY_NATIVE_HEIGHT 480
+#define DISPLAY_ACTUAL_HEIGHT 240
+#define DOUBLE_HEIGHT
 #elif defined(ST7735R)
 #define DISPLAY_NATIVE_WIDTH 128
 #define DISPLAY_NATIVE_HEIGHT 160
@@ -55,7 +58,7 @@ void TurnDisplayOff(void);
 // actually needs to observe the CS line toggle during execution, it cannot just be always activated.
 // (ST7735R does not care about this)
 // TODO: It is actually untested if ST7789VW really needs this, but does work with it, so kept for now
-#define DISPLAY_NEEDS_CHIP_SELECT_SIGNAL
+//#define DISPLAY_NEEDS_CHIP_SELECT_SIGNAL
 #endif
 
 #endif
